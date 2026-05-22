@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muglan Udyog - Order & Inventory System (Prototype)</title>
+<style>
+  :root{
+    --bg:#f4f3ef; --surface:#ffffff; --ink:#23211c; --muted:#6c6a62;
+    --line:#e3e1d8; --line2:#cfccc0;
+    --brand:#7a4a1e; --brand-soft:#f1e6d9;
+    --green:#2f7d4f; --green-soft:#e4f1e8;
+    --amber:#9a6a10; --amber-soft:#f6ecd6; --amber-soft2:#f7eccf;
+    --red:#a8392f; --red-soft:#f6e3e1;
+    --blue:#2e5e94; --blue-soft:#e4ecf6;
+    --purple:#5a4a93; --purple-soft:#e9e5f4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased;
+    font-size:15px; line-height:1.5;
+  }
+  /* ---------- shell ---------- */
+  .app{display:flex; min-height:100vh; flex-direction:column}
+  header{
+    background:var(--brand); color:#fff; padding:10px 16px;
+    display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:50;
+  }
+  header .logo{font-weight:700; font-size:16px; letter-spacing:.2px; white-space:nowrap}
+  header .logo small{font-weight:400; opacity:.75; font-size:11px; display:block}
+  header .sp{flex:1}
+  header .who{font-size:13px; opacity:.9; display:flex; align-items:center; gap:8px}
+  header .who select{
+    background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3);
+    border-radius:6px; padding:4px 8px; font-size:13px;
+  }
+  header .who select option{color:#000}
+
+  /* tabs */
+  nav{
+    background:var(--surface); border-bottom:1px solid var(--line);
+    display:flex; gap:2px; padding:0 8px; overflow-x:auto; position:sticky; top:46px; z-index:40;
+  }
+  nav button{
+    background:none; border:none; padding:11px 13px; font-size:13.5px; cursor:pointer;
+    color:var(--muted); border-bottom:2.5px solid transparent; white-space:nowrap;
+    display:flex; align-items:center; gap:6px; font-family:inherit;
+  }
+  nav button .ic{font-size:15px}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--brand); border-bottom-color:var(--brand); font-weight:600}
+  nav button .pill{
+    background:var(--red); color:#fff; font-size:10px; font-weight:700;
+    border-radius:9px; padding:1px 6px; min-width:17px; text-align:center;
+  }
+
+  main{flex:1; padding:16px; max-width:1100px; margin:0 auto; width:100%}
+
+  /* ---------- generic ---------- */
+  h2.page{font-size:19px; margin-bottom:3px; display:flex; align-items:center; gap:8px}
+  .sub{color:var(--muted); font-size:13px; margin-bottom:14px}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:14px; margin-bottom:12px;
+  }
+  .card h3{font-size:15px; margin-bottom:8px}
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  .grow{flex:1; min-width:0}
+  .muted{color:var(--muted)}
+  .sm{font-size:13px}
+  .xs{font-size:11.5px}
+  .right{text-align:right}
+  .mono{font-variant-numeric:tabular-nums}
+
+  button.btn{
+    background:var(--brand); color:#fff; border:none; border-radius:7px;
+    padding:9px 14px; font-size:13.5px; cursor:pointer; font-family:inherit; font-weight:600;
+  }
+  button.btn:hover{filter:brightness(1.08)}
+  button.btn.ghost{background:#fff; color:var(--brand); border:1px solid var(--line2)}
+  button.btn.ghost:hover{background:var(--brand-soft); filter:none}
+  button.btn.sm{padding:6px 10px; font-size:12.5px}
+  button.btn.green{background:var(--green)}
+  button.btn.red{background:var(--red)}
+  button.btn.blue{background:var(--blue)}
+  button.btn:disabled{opacity:.45; cursor:not-allowed}
+
+  .badge{
+    display:inline-block; font-size:11px; font-weight:700; padding:3px 8px;
+    border-radius:20px; white-space:nowrap; line-height:1.4;
+  }
+  .b-grey{background:#eceae2; color:#5f5d55}
+  .b-blue{background:var(--blue-soft); color:var(--blue)}
+  .b-amber{background:var(--amber-soft2); color:var(--amber)}
+  .b-green{background:var(--green-soft); color:var(--green)}
+  .b-red{background:var(--red-soft); color:var(--red)}
+  .b-purple{background:var(--purple-soft); color:var(--purple)}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th{text-align:left; color:var(--muted); font-weight:600; font-size:11.5px;
+     text-transform:uppercase; letter-spacing:.4px; padding:7px 8px; border-bottom:1px solid var(--line)}
+  td{padding:9px 8px; border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  tr.click{cursor:pointer}
+  tr.click:hover{background:#faf8f3}
+
+  input,select,textarea{
+    font-family:inherit; font-size:14px; padding:8px 9px; border:1px solid var(--line2);
+    border-radius:7px; background:#fff; width:100%; color:var(--ink);
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-soft); border-color:var(--brand)}
+  label.fld{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:4px}
+  .fldwrap{margin-bottom:10px}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:14px}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 13px}
+  .stat .n{font-size:23px; font-weight:700}
+  .stat .l{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
+  .stat .l .ic{font-size:13px}
+
+  /* progress bar of statuses */
+  .flow{display:flex; gap:4px; margin:10px 0}
+  .flow .step{
+    flex:1; text-align:center; font-size:10px; padding:5px 2px; border-radius:5px;
+    background:#eceae2; color:#8a887e; font-weight:600;
+  }
+  .flow .step.done{background:var(--green-soft); color:var(--green)}
+  .flow .step.now{background:var(--brand); color:#fff}
+
+  /* modal */
+  .scrim{
+    position:fixed; inset:0; background:rgba(20,18,14,.5); z-index:100;
+    display:flex; align-items:flex-start; justify-content:center; padding:24px 12px; overflow-y:auto;
+  }
+  .modal{
+    background:var(--surface); border-radius:12px; width:100%; max-width:680px;
+    box-shadow:0 16px 48px rgba(0,0,0,.3);
+  }
+  .modal .mh{
+    padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px;
+    position:sticky; top:0; background:var(--surface); border-radius:12px 12px 0 0;
+  }
+  .modal .mh h3{font-size:16px; flex:1}
+  .modal .mh .x{cursor:pointer; font-size:22px; color:var(--muted); line-height:1; border:none; background:none}
+  .modal .mb{padding:16px}
+  .modal .mf{padding:12px 16px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:flex-end}
+
+  .kv{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--line); font-size:13.5px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted)}
+
+  .note{
+    background:var(--amber-soft2); border:1px solid #ead9b0; border-radius:8px;
+    padding:9px 11px; font-size:12.5px; color:#7a5806; margin:8px 0;
+    display:flex; gap:8px;
+  }
+  .note.blue{background:var(--blue-soft); border-color:#bdd0e8; color:var(--blue)}
+  .note.green{background:var(--green-soft); border-color:#bcdcc6; color:var(--green)}
+  .note.red{background:var(--red-soft); border-color:#e6c2bd; color:var(--red)}
+
+  .timeline{margin:6px 0}
+  .timeline .ev{display:flex; gap:9px; padding:5px 0; font-size:12.5px}
+  .timeline .ev .dot{width:9px; height:9px; border-radius:50%; background:var(--brand); margin-top:4px; flex-shrink:0}
+  .timeline .ev .t{color:var(--muted); font-size:11px; white-space:nowrap}
+
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:11px 18px; border-radius:9px; font-size:13.5px;
+    z-index:200; box-shadow:0 6px 24px rgba(0,0,0,.3); max-width:90%;
+  }
+  .empty{text-align:center; color:var(--muted); padding:30px 10px; font-size:13.5px}
+
+  .quote-doc{border:1px solid var(--line2); border-radius:8px; padding:14px; background:#fffdf8}
+  .quote-doc .qh{display:flex; justify-content:space-between; border-bottom:2px solid var(--brand); padding-bottom:8px; margin-bottom:10px}
+
+  .chip{display:inline-flex; align-items:center; gap:5px; background:#f0eee6; border:1px solid var(--line);
+    border-radius:20px; padding:3px 10px; font-size:12px; margin:2px}
+  .lowstock{color:var(--red); font-weight:700}
+
+  .recipe-line{display:flex; gap:8px; align-items:center; margin-bottom:6px}
+  .recipe-line input{flex:1}
+
+  .seg{display:inline-flex; border:1px solid var(--line2); border-radius:7px; overflow:hidden}
+  .seg button{background:#fff; border:none; padding:6px 12px; font-size:12.5px; cursor:pointer; color:var(--muted); font-family:inherit}
+  .seg button.on{background:var(--brand); color:#fff; font-weight:600}
+
+  @media(max-width:560px){
+    main{padding:12px}
+    .modal .mb{padding:12px}
+    nav button{padding:10px 9px; font-size:12.5px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">Muglan Udyog <small>order &amp; inventory system · prototype</small></div>
+    <div class="sp"></div>
+    <div class="who">
+      <span class="ic">👤</span>
+      <select id="userSel" onchange="state.user=this.value">
+        <option value="Sita (Admin)">Sita (Admin)</option>
+        <option value="Ram (Staff)">Ram (Staff)</option>
+        <option value="Gita (Staff)">Gita (Staff)</option>
+      </select>
+    </div>
+  </header>
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+/* =====================================================================
+   DEMO DATA  — in real build this lives in SQLite. Here it's in memory.
+   ===================================================================== */
+const todayISO = () => new Date().toISOString().slice(0,10);
+function addDays(iso,d){const t=new Date(iso);t.setDate(t.getDate()+d);return t.toISOString().slice(0,10);}
+function fmtMoney(n){return 'Rs '+Number(n).toLocaleString('en-IN');}
+function uid(p){return p+'-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+
+const state = {
+  user:'Sita (Admin)',
+  tab:'dashboard',
+
+  /* RAW MATERIALS — inventory of ingredients */
+  raw:[
+    {id:'R1', name:'Mustard oil',     unit:'L',  qty:18,  reorder:10, cost:210},
+    {id:'R2', name:'Turmeric powder', unit:'kg', qty:2.5, reorder:3,  cost:320},
+    {id:'R3', name:'Red chilli powder',unit:'kg',qty:1.2, reorder:2,  cost:480},
+    {id:'R4', name:'Szechuan pepper', unit:'kg', qty:0.4, reorder:1,  cost:1400},
+    {id:'R5', name:'Salt',            unit:'kg', qty:14,  reorder:5,  cost:25},
+    {id:'R6', name:'Fenugreek (methi)',unit:'kg',qty:3,   reorder:1,  cost:180},
+    {id:'R7', name:'Raw tama (bamboo shoot)',unit:'kg',qty:30,reorder:10,cost:90},
+    {id:'R8', name:'Glass jars (200g)',unit:'pcs',qty:120,reorder:50, cost:18},
+  ],
+
+  /* PRODUCTS — finished goods catalogue */
+  products:[
+    {id:'P1', name:'Tama ko Achar', defaultRecipeId:'RC1', shelfLifeDays:180},
+    {id:'P2', name:'Mula ko Achar', defaultRecipeId:'RC2', shelfLifeDays:120},
+    {id:'P3', name:'Lapsi ko Achar',defaultRecipeId:'RC3', shelfLifeDays:240},
+  ],
+
+  /* RECIPES — default recipes + any custom ones get added here */
+  recipes:[
+    {id:'RC1', productId:'P1', name:'Tama ko Achar — house recipe', custom:false,
+     yield:1, lines:[ /* per 1 jar (200g) */
+       {raw:'R7',qty:0.18},{raw:'R1',qty:0.05},{raw:'R2',qty:0.004},
+       {raw:'R3',qty:0.006},{raw:'R5',qty:0.005},{raw:'R6',qty:0.003},{raw:'R8',qty:1}
+     ]},
+    {id:'RC2', productId:'P2', name:'Mula ko Achar — house recipe', custom:false,
+     yield:1, lines:[
+       {raw:'R1',qty:0.04},{raw:'R2',qty:0.003},{raw:'R3',qty:0.005},
+       {raw:'R5',qty:0.006},{raw:'R8',qty:1}
+     ]},
+    {id:'RC3', productId:'P3', name:'Lapsi ko Achar — house recipe', custom:false,
+     yield:1, lines:[
+       {raw:'R1',qty:0.03},{raw:'R2',qty:0.002},{raw:'R5',qty:0.004},{raw:'R8',qty:1}
+     ]},
+  ],
+
+  /* FINISHED STOCK — products sitting in inventory ready to sell */
+  stock:[
+    {id:'S1', productId:'P2', recipeId:'RC2', qty:40, mfgDate:addDays(todayISO(),-30),
+     expiry:addDays(todayISO(),90), batch:'B-2405'},
+    {id:'S2', productId:'P1', recipeId:'RC1', qty:8,  mfgDate:addDays(todayISO(),-150),
+     expiry:addDays(todayISO(),30), batch:'B-2312'},
+  ],
+
+  /* CUSTOMERS */
+  customers:[
+    {id:'C1', name:'Hari Sharma',  phone:'+977 98xxxxx21', channel:'WhatsApp'},
+    {id:'C2', name:'Everest Mart', phone:'+977 98xxxxx88', channel:'Facebook'},
+    {id:'C3', name:'Kopila Store', phone:'+977 98xxxxx04', channel:'WhatsApp'},
+  ],
+
+  /* QUOTATIONS */
+  quotes:[
+    {id:'Q-1042', customerId:'C2', date:addDays(todayISO(),-2), status:'Sent',
+     items:[{productId:'P1', recipeId:'RC1', qty:50, price:140}],
+     note:'Standard house recipe.', custom:false},
+  ],
+
+  /* ORDERS — the heart of the system */
+  orders:[
+    {id:'O-2051', customerId:'C1', productId:'P2', recipeId:'RC2', qty:25,
+     unitPrice:130, status:'Manufacturing', mfgStage:'Mixing & salting',
+     created:addDays(todayISO(),-4), due:addDays(todayISO(),3),
+     fromStock:false, source:'WhatsApp',
+     payment:{plan:'installments', total:25*130, paid:1500,
+              schedule:[{label:'Advance',amount:1500,due:addDays(todayISO(),-4),paid:true},
+                        {label:'On delivery',amount:25*130-1500,due:addDays(todayISO(),3),paid:false}]},
+     log:[{t:addDays(todayISO(),-4),u:'Sita (Admin)',m:'Order created from quotation Q-1039.'},
+          {t:addDays(todayISO(),-4),u:'System',m:'Recipe checked — all raw materials in stock.'},
+          {t:addDays(todayISO(),-3),u:'System',m:'Status → Ready for manufacturing.'},
+          {t:addDays(todayISO(),-2),u:'Ram (Staff)',m:'Manufacturing started.'},
+          {t:addDays(todayISO(),-1),u:'Ram (Staff)',m:'Stage → Mixing & salting.'}]},
+
+    {id:'O-2048', customerId:'C3', productId:'P1', recipeId:'RC1', qty:60,
+     unitPrice:150, status:'Awaiting raw material',
+     created:addDays(todayISO(),-1), due:addDays(todayISO(),6),
+     fromStock:false, source:'Facebook',
+     shortfall:[{raw:'R3',need:0.36,have:1.2},{raw:'R4',need:0,have:0.4}],
+     payment:{plan:'full', total:60*150, paid:0,
+              schedule:[{label:'Full payment',amount:60*150,due:addDays(todayISO(),6),paid:false}]},
+     log:[{t:addDays(todayISO(),-1),u:'Gita (Staff)',m:'Order created.'},
+          {t:addDays(todayISO(),-1),u:'System',m:'Recipe checked — red chilli powder short by 0.36 kg.'},
+          {t:addDays(todayISO(),-1),u:'System',m:'Status → Awaiting raw material. Purchase suggested.'}]},
+  ],
+
+  /* PURCHASE ORDERS for raw material */
+  purchases:[
+    {id:'PO-310', raw:'R3', qty:5, status:'Ordered', forOrder:'O-2048',
+     created:addDays(todayISO(),-1), supplier:'Bhairab Traders'},
+  ],
+};
+
+/* status → ordered flow for the progress bar */
+const ORDER_FLOW = ['Quotation','Confirmed','Awaiting raw material','Ready for manufacturing','Manufacturing','Ready to deliver','Delivered','Completed'];
+const MFG_STAGES = ['Not started','Prep & cleaning','Frying spices','Mixing & salting','Jarring & sealing','Finished'];
+
+function statusBadge(s){
+  const map={
+    'Quotation':'b-grey','Confirmed':'b-blue','Awaiting raw material':'b-red',
+    'Ready for manufacturing':'b-amber','Manufacturing':'b-purple',
+    'Ready to deliver':'b-amber','Delivered':'b-green','Completed':'b-green',
+    'Returned':'b-grey','Cancelled':'b-grey'
+  };
+  return `<span class="badge ${map[s]||'b-grey'}">${s}</span>`;
+}
+
+/* =====================================================================
+   HELPERS — domain logic
+   ===================================================================== */
+const rawById   = id => state.raw.find(r=>r.id===id);
+const prodById  = id => state.products.find(p=>p.id===id);
+const recById   = id => state.recipes.find(r=>r.id===id);
+const custById  = id => state.customers.find(c=>c.id===id);
+const orderById = id => state.orders.find(o=>o.id===id);
+
+/* total finished stock of a product (default recipe only counts as generic stock) */
+function stockOf(productId){
+  return state.stock.filter(s=>s.productId===productId).reduce((a,s)=>a+s.qty,0);
+}
+
+/* check a recipe against current raw stock for a given quantity of jars */
+function checkRecipe(recipeId, qty){
+  const rec = recById(recipeId);
+  const result = {ok:true, lines:[]};
+  rec.lines.forEach(l=>{
+    const r = rawById(l.raw);
+    const need = +(l.qty*qty).toFixed(3);
+    const have = r.qty;
+    const short = +(need-have).toFixed(3);
+    const lineOk = have>=need;
+    if(!lineOk) result.ok=false;
+    result.lines.push({raw:r,need,have,short:short>0?short:0,ok:lineOk});
+  });
+  return result;
+}
+
+function daysLeft(iso){
+  const d = Math.round((new Date(iso)-new Date(todayISO()))/86400000);
+  return d;
+}
+
+let toastTimer;
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.remove(),2600);
+}
+
+function logEvent(order,msg){
+  order.log.push({t:todayISO(),u:state.user,m:msg});
+}
+
+/* =====================================================================
+   NAVIGATION
+   ===================================================================== */
+const TABS=[
+  {id:'dashboard', label:'Dashboard', ic:'🏠'},
+  {id:'quotes',    label:'Quotations',ic:'📝'},
+  {id:'orders',    label:'Orders',    ic:'📦'},
+  {id:'mfg',       label:'Manufacturing',ic:'🏭'},
+  {id:'stock',     label:'Finished stock',ic:'🫙'},
+  {id:'raw',       label:'Raw materials',ic:'🧂'},
+  {id:'recipes',   label:'Recipes',   ic:'📖'},
+  {id:'payments',  label:'Payments',  ic:'💰'},
+];
+
+function renderNav(){
+  const nav=document.getElementById('nav');
+  // count of things needing attention
+  const alerts={
+    orders:state.orders.filter(o=>o.status==='Awaiting raw material').length,
+    raw:state.raw.filter(r=>r.qty<=r.reorder).length,
+    payments:state.orders.filter(o=>o.payment && o.payment.paid<o.payment.total &&
+              o.payment.schedule.some(s=>!s.paid && daysLeft(s.due)<=3)).length,
+  };
+  nav.innerHTML=TABS.map(t=>{
+    const a=alerts[t.id];
+    return `<button class="${state.tab===t.id?'on':''}" onclick="go('${t.id}')">
+      <span class="ic">${t.ic}</span>${t.label}
+      ${a?`<span class="pill">${a}</span>`:''}</button>`;
+  }).join('');
+}
+function go(tab){state.tab=tab; render();}
+
+/* =====================================================================
+   RENDER ROUTER
+   ===================================================================== */
+function render(){
+  renderNav();
+  const m=document.getElementById('main');
+  m.innerHTML=({
+    dashboard:viewDashboard, quotes:viewQuotes, orders:viewOrders,
+    mfg:viewMfg, stock:viewStock, raw:viewRaw, recipes:viewRecipes,
+    payments:viewPayments
+  }[state.tab])();
+  window.scrollTo(0,0);
+}
+
+/* =====================================================================
+   VIEW: DASHBOARD
+   ===================================================================== */
+function viewDashboard(){
+  const active=state.orders.filter(o=>!['Completed','Returned','Cancelled'].includes(o.status));
+  const awaiting=state.orders.filter(o=>o.status==='Awaiting raw material');
+  const lowRaw=state.raw.filter(r=>r.qty<=r.reorder);
+  const duePay=state.orders.filter(o=>o.payment && o.payment.paid<o.payment.total);
+  const expiringSoon=state.stock.filter(s=>daysLeft(s.expiry)<=45);
+
+  let html=`<h2 class="page">🏠 Dashboard</h2>
+    <div class="sub">Good day, ${state.user.split(' ')[0]}. Here's what needs attention.</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="l"><span class="ic">📦</span> Active orders</div><div class="n">${active.length}</div></div>
+      <div class="stat"><div class="l"><span class="ic">🏭</span> In manufacturing</div><div class="n">${state.orders.filter(o=>o.status==='Manufacturing').length}</div></div>
+      <div class="stat"><div class="l"><span class="ic">⚠️</span> Low raw materials</div><div class="n" style="color:${lowRaw.length?'var(--red)':'inherit'}">${lowRaw.length}</div></div>
+      <div class="stat"><div class="l"><span class="ic">💰</span> Orders with balance</div><div class="n">${duePay.length}</div></div>
+    </div>`;
+
+  /* attention panel */
+  html+=`<div class="card"><h3>⚡ Needs your attention</h3>`;
+  let any=false;
+  awaiting.forEach(o=>{
+    any=true;
+    const c=custById(o.customerId);
+    html+=`<div class="note red"><span>🔴</span><div><b>${o.id}</b> for ${c.name} is waiting on raw material.
+      <a href="#" onclick="openOrder('${o.id}');return false">Open order →</a></div></div>`;
+  });
+  lowRaw.forEach(r=>{
+    any=true;
+    html+=`<div class="note"><span>🧂</span><div><b>${r.name}</b> is low — only ${r.qty}${r.unit} left (reorder at ${r.reorder}${r.unit}).
+      <a href="#" onclick="go('raw');return false">Go to raw materials →</a></div></div>`;
+  });
+  state.orders.forEach(o=>{
+    if(!o.payment) return;
+    o.payment.schedule.forEach(s=>{
+      if(!s.paid && daysLeft(s.due)<=3){
+        any=true;
+        const c=custById(o.customerId);
+        const dl=daysLeft(s.due);
+        html+=`<div class="note blue"><span>💰</span><div>Payment "${s.label}" of ${fmtMoney(s.amount)} for ${c.name}
+          (${o.id}) is due ${dl<0?Math.abs(dl)+' days ago':'in '+dl+' days'}.
+          <a href="#" onclick="go('payments');return false">Send reminder →</a></div></div>`;
+      }
+    });
+  });
+  expiringSoon.forEach(s=>{
+    any=true;
+    html+=`<div class="note"><span>⏰</span><div>Batch <b>${s.batch}</b> of ${prodById(s.productId).name}
+      expires in ${daysLeft(s.expiry)} days — ${s.qty} jars in stock.</div></div>`;
+  });
+  if(!any) html+=`<div class="empty">All clear — nothing urgent right now. ✅</div>`;
+  html+=`</div>`;
+
+  /* quick actions */
+  html+=`<div class="card"><h3>Quick actions</h3>
+    <div class="row">
+      <button class="btn" onclick="openNewQuote()">📝 New quotation</button>
+      <button class="btn ghost" onclick="go('orders')">📦 View all orders</button>
+      <button class="btn ghost" onclick="go('mfg')">🏭 Manufacturing board</button>
+    </div></div>`;
+
+  /* recent orders */
+  html+=`<div class="card"><h3>Recent orders</h3>${ordersTable(state.orders.slice().reverse().slice(0,5))}</div>`;
+  return html;
+}
+
+/* =====================================================================
+   VIEW: QUOTATIONS  (the WhatsApp → quotation flow)
+   ===================================================================== */
+function viewQuotes(){
+  let html=`<h2 class="page">📝 Quotations</h2>
+    <div class="sub">A client asks for a price on WhatsApp/Facebook. Build a quotation here — when they agree, it becomes an order in one click.</div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn" onclick="openNewQuote()">+ New quotation</button>
+    </div>`;
+  if(!state.quotes.length){html+=`<div class="empty">No quotations yet.</div>`;return html;}
+  html+=`<div class="card" style="padding:0"><table>
+    <tr><th>Quote #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr>`;
+  state.quotes.slice().reverse().forEach(q=>{
+    const c=custById(q.customerId);
+    const total=q.items.reduce((a,i)=>a+i.qty*i.price,0);
+    const itemTxt=q.items.map(i=>`${i.qty}× ${prodById(i.productId).name}`).join(', ');
+    html+=`<tr class="click" onclick="openQuote('${q.id}')">
+      <td class="mono"><b>${q.id}</b></td><td>${c.name}</td>
+      <td class="sm">${itemTxt} ${q.custom?'<span class="badge b-purple">custom</span>':''}</td>
+      <td class="mono">${fmtMoney(total)}</td>
+      <td>${q.status==='Sent'?'<span class="badge b-blue">Sent</span>':
+            q.status==='Accepted'?'<span class="badge b-green">Accepted</span>':
+            '<span class="badge b-grey">Draft</span>'}</td>
+      <td class="right xs muted">${q.date}</td></tr>`;
+  });
+  html+=`</table></div>`;
+  return html;
+}
+
+/* =====================================================================
+   VIEW: ORDERS
+   ===================================================================== */
+function ordersTable(list){
+  if(!list.length) return `<div class="empty">No orders.</div>`;
+  let h=`<table><tr><th>Order #</th><th>Customer</th><th>Product</th><th>Qty</th><th>Status</th><th>Due</th></tr>`;
+  list.forEach(o=>{
+    const c=custById(o.customerId), p=prodById(o.productId);
+    const dl=daysLeft(o.due);
+    h+=`<tr class="click" onclick="openOrder('${o.id}')">
+      <td class="mono"><b>${o.id}</b></td><td>${c.name}</td>
+      <td>${p.name} ${o.fromStock?'<span class="badge b-green">from stock</span>':''}
+          ${recById(o.recipeId).custom?'<span class="badge b-purple">custom</span>':''}</td>
+      <td class="mono">${o.qty}</td>
+      <td>${statusBadge(o.status)}</td>
+      <td class="xs ${dl<0?'lowstock':'muted'}">${dl<0?Math.abs(dl)+'d overdue':dl+'d'}</td></tr>`;
+  });
+  return h+`</table>`;
+}
+function viewOrders(){
+  const list=state.orders.slice().reverse();
+  return `<h2 class="page">📦 Orders</h2>
+    <div class="sub">Every order tracks its own recipe, raw-material check, manufacturing stage and payment.</div>
+    <div class="card" style="padding:0">${ordersTable(list)}</div>`;
+}
+
+/* =====================================================================
+   VIEW: MANUFACTURING BOARD
+   ===================================================================== */
+function viewMfg(){
+  const inMfg=state.orders.filter(o=>['Ready for manufacturing','Manufacturing'].includes(o.status));
+  let html=`<h2 class="page">🏭 Manufacturing</h2>
+    <div class="sub">Orders that are cleared to produce. Move them through the stages as work happens on the floor.</div>`;
+  if(!inMfg.length){html+=`<div class="empty">Nothing in manufacturing right now.</div>`;return html;}
+  inMfg.forEach(o=>{
+    const c=custById(o.customerId), p=prodById(o.productId);
+    const stageIdx=MFG_STAGES.indexOf(o.mfgStage||'Not started');
+    html+=`<div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b>${o.id}</b> · ${p.name} ×${o.qty} <span class="muted sm">· ${c.name}</span></div>
+        ${statusBadge(o.status)}
+      </div>
+      <div class="flow">${MFG_STAGES.map((s,i)=>
+        `<div class="step ${i<stageIdx?'done':i===stageIdx?'now':''}">${s}</div>`).join('')}</div>
+      <div class="row" style="margin-top:8px">
+        ${o.status==='Ready for manufacturing'
+          ? `<button class="btn green sm" onclick="advanceMfg('${o.id}')">▶ Start manufacturing</button>`
+          : stageIdx<MFG_STAGES.length-1
+            ? `<button class="btn sm" onclick="advanceMfg('${o.id}')">Next stage → ${MFG_STAGES[stageIdx+1]}</button>`
+            : `<button class="btn green sm" onclick="finishMfg('${o.id}')">✓ Finish &amp; move to delivery</button>`}
+        <button class="btn ghost sm" onclick="blockMfg('${o.id}')">⏸ Mark blocked</button>
+        <button class="btn ghost sm" onclick="openOrder('${o.id}')">Open order</button>
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+/* =====================================================================
+   VIEW: FINISHED STOCK
+   ===================================================================== */
+function viewStock(){
+  let html=`<h2 class="page">🫙 Finished stock</h2>
+    <div class="sub">Jars ready to sell. When an order ships from stock, the count drops here automatically.</div>`;
+  html+=`<div class="card" style="padding:0"><table>
+    <tr><th>Product</th><th>Batch</th><th>Qty</th><th>Made</th><th>Expiry</th><th>Recipe</th></tr>`;
+  if(!state.stock.length){
+    html+=`<tr><td colspan="6"><div class="empty">No finished stock.</div></td></tr>`;
+  }
+  state.stock.forEach(s=>{
+    const dl=daysLeft(s.expiry);
+    html+=`<tr><td><b>${prodById(s.productId).name}</b></td>
+      <td class="mono xs">${s.batch}</td>
+      <td class="mono">${s.qty}</td>
+      <td class="xs muted">${s.mfgDate}</td>
+      <td class="xs ${dl<=45?'lowstock':'muted'}">${s.expiry} (${dl}d)</td>
+      <td class="xs">${recById(s.recipeId).custom?'<span class="badge b-purple">custom</span>':'House'}</td></tr>`;
+  });
+  html+=`</table></div>
+   <div class="note blue"><span>ℹ️</span><div>Custom-recipe jars are tracked separately and are <b>not</b> offered to other customers — only house-recipe stock can fulfil a new order directly.</div></div>`;
+  return html;
+}
+
+/* =====================================================================
+   VIEW: RAW MATERIALS
+   ===================================================================== */
+function viewRaw(){
+  let html=`<h2 class="page">🧂 Raw materials</h2>
+    <div class="sub">Ingredient inventory. Items at or below their reorder level are flagged.</div>
+    <div class="card" style="padding:0"><table>
+      <tr><th>Material</th><th>In stock</th><th>Reorder at</th><th>Status</th><th>Adjust</th></tr>`;
+  state.raw.forEach(r=>{
+    const low=r.qty<=r.reorder;
+    html+=`<tr><td><b>${r.name}</b></td>
+      <td class="mono ${low?'lowstock':''}">${r.qty} ${r.unit}</td>
+      <td class="mono muted">${r.reorder} ${r.unit}</td>
+      <td>${low?'<span class="badge b-red">Low — reorder</span>':'<span class="badge b-green">OK</span>'}</td>
+      <td><button class="btn ghost sm" onclick="openReceiveRaw('${r.id}')">+ Receive stock</button></td></tr>`;
+  });
+  html+=`</table></div>`;
+
+  /* purchase orders */
+  html+=`<div class="card"><h3>Purchase orders (raw material)</h3>`;
+  if(!state.purchases.length){html+=`<div class="empty">No purchase orders.</div>`;}
+  else{
+    html+=`<table><tr><th>PO #</th><th>Material</th><th>Qty</th><th>For order</th><th>Supplier</th><th>Status</th><th></th></tr>`;
+    state.purchases.forEach(po=>{
+      html+=`<tr><td class="mono"><b>${po.id}</b></td>
+        <td>${rawById(po.raw).name}</td><td class="mono">${po.qty} ${rawById(po.raw).unit}</td>
+        <td class="mono xs">${po.forOrder||'—'}</td><td class="sm">${po.supplier}</td>
+        <td>${po.status==='Received'?'<span class="badge b-green">Received</span>':'<span class="badge b-amber">Ordered</span>'}</td>
+        <td>${po.status==='Ordered'?`<button class="btn green sm" onclick="receivePO('${po.id}')">Mark received</button>`:''}</td></tr>`;
+    });
+    html+=`</table>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+/* =====================================================================
+   VIEW: RECIPES
+   ===================================================================== */
+function viewRecipes(){
+  let html=`<h2 class="page">📖 Recipes</h2>
+    <div class="sub">Each product has a house recipe. Customers can also order with their own custom recipe — those are saved here too, tied to that order.</div>`;
+  state.products.forEach(p=>{
+    const recs=state.recipes.filter(r=>r.productId===p.id);
+    html+=`<div class="card"><div class="row" style="justify-content:space-between">
+      <h3>${p.name}</h3>
+      <span class="xs muted">Shelf life: ${p.shelfLifeDays} days</span></div>`;
+    recs.forEach(r=>{
+      html+=`<div style="border:1px solid var(--line); border-radius:8px; padding:9px; margin-top:7px">
+        <div class="row" style="justify-content:space-between">
+          <b class="sm">${r.name}</b>
+          ${r.custom?'<span class="badge b-purple">custom</span>':'<span class="badge b-green">house recipe</span>'}
+        </div>
+        <div style="margin-top:6px">${r.lines.map(l=>{
+          const raw=rawById(l.raw);
+          return `<span class="chip">${raw.name}: ${l.qty} ${raw.unit}/jar</span>`;
+        }).join('')}</div></div>`;
+    });
+    html+=`</div>`;
+  });
+  return html;
+}
+
+/* =====================================================================
+   VIEW: PAYMENTS
+   ===================================================================== */
+function viewPayments(){
+  const withPay=state.orders.filter(o=>o.payment);
+  let html=`<h2 class="page">💰 Payments</h2>
+    <div class="sub">Track full and installment payments. The system flags anything due within 3 days so you can send a reminder.</div>`;
+  if(!withPay.length){html+=`<div class="empty">No payments to track.</div>`;return html;}
+  withPay.forEach(o=>{
+    const c=custById(o.customerId);
+    const pay=o.payment;
+    const bal=pay.total-pay.paid;
+    const pct=Math.round(pay.paid/pay.total*100);
+    html+=`<div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b>${o.id}</b> · ${c.name} <span class="muted sm">· ${prodById(o.productId).name} ×${o.qty}</span></div>
+        <span class="badge ${bal<=0?'b-green':pct>0?'b-amber':'b-red'}">${bal<=0?'Paid in full':pct+'% paid'}</span>
+      </div>
+      <div style="margin:8px 0; background:#eceae2; border-radius:6px; height:9px; overflow:hidden">
+        <div style="background:var(--green); height:100%; width:${pct}%"></div></div>
+      <div class="row" style="gap:18px">
+        <span class="sm">Total: <b>${fmtMoney(pay.total)}</b></span>
+        <span class="sm">Paid: <b style="color:var(--green)">${fmtMoney(pay.paid)}</b></span>
+        <span class="sm">Balance: <b style="color:${bal>0?'var(--red)':'inherit'}">${fmtMoney(bal)}</b></span>
+        <span class="sm muted">${pay.plan==='installments'?'Installment plan':'Full payment'}</span>
+      </div>
+      <table style="margin-top:8px"><tr><th>Installment</th><th>Amount</th><th>Due</th><th>Status</th><th></th></tr>`;
+    pay.schedule.forEach((s,i)=>{
+      const dl=daysLeft(s.due);
+      html+=`<tr><td class="sm">${s.label}</td><td class="mono">${fmtMoney(s.amount)}</td>
+        <td class="xs ${!s.paid&&dl<=3?'lowstock':'muted'}">${s.due}${!s.paid&&dl<=3?' ⚠':''}</td>
+        <td>${s.paid?'<span class="badge b-green">Paid</span>':'<span class="badge b-amber">Pending</span>'}</td>
+        <td>${s.paid?'':`<div class="row">
+          <button class="btn green sm" onclick="markPaid('${o.id}',${i})">Mark paid</button>
+          ${dl<=3?`<button class="btn ghost sm" onclick="remind('${o.id}','${c.name}')">Send reminder</button>`:''}
+        </div>`}</td></tr>`;
+    });
+    html+=`</table></div>`;
+  });
+  return html;
+}
+
+/* =====================================================================
+   MODAL ENGINE
+   ===================================================================== */
+function modal(title,bodyHTML,footHTML){
+  closeModal();
+  const s=document.createElement('div');
+  s.className='scrim'; s.id='scrim';
+  s.onclick=e=>{if(e.target===s)closeModal();};
+  s.innerHTML=`<div class="modal">
+    <div class="mh"><h3>${title}</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="mb">${bodyHTML}</div>
+    ${footHTML?`<div class="mf">${footHTML}</div>`:''}
+  </div>`;
+  document.body.appendChild(s);
+}
+function closeModal(){const s=document.getElementById('scrim'); if(s)s.remove();}
+
+/* =====================================================================
+   QUOTATION — new + detail
+   ===================================================================== */
+function openNewQuote(){
+  const body=`
+    <div class="note"><span>💡</span><div>This mimics how the admin works: a client messages on WhatsApp, you build the quotation here.
+      In the real system this could also be filled by photographing a handwritten note — for now we keep it a simple form.</div></div>
+    <div class="fldwrap"><label class="fld">Customer</label>
+      <select id="q_cust">${state.customers.map(c=>`<option value="${c.id}">${c.name} · ${c.channel}</option>`).join('')}</select></div>
+    <div class="fldwrap"><label class="fld">Product</label>
+      <select id="q_prod" onchange="quoteRecipeOptions()">${state.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+    <div class="row">
+      <div class="fldwrap grow"><label class="fld">Quantity (jars)</label>
+        <input id="q_qty" type="number" value="50" min="1"></div>
+      <div class="fldwrap grow"><label class="fld">Price per jar (Rs)</label>
+        <input id="q_price" type="number" value="140" min="0"></div>
+    </div>
+    <div class="fldwrap"><label class="fld">Recipe</label>
+      <div id="q_recwrap"></div></div>
+    <div id="q_customwrap" style="display:none">
+      <div class="note"><span>🌶️</span><div>Custom recipe — adjust the amounts the customer asked for. This gets saved against this quotation only.</div></div>
+      <div id="q_customlines"></div>
+    </div>
+    <div class="fldwrap"><label class="fld">Note to customer (optional)</label>
+      <textarea id="q_note" rows="2" placeholder="e.g. Delivery within 1 week of confirmation."></textarea></div>`;
+  modal('New quotation', body,
+    `<button class="btn ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn" onclick="saveQuote()">Create &amp; preview</button>`);
+  quoteRecipeOptions();
+}
+function quoteRecipeOptions(){
+  const pid=document.getElementById('q_prod').value;
+  const recs=state.recipes.filter(r=>r.productId===pid && !r.custom);
+  document.getElementById('q_recwrap').innerHTML=`
+    <select id="q_recipe" onchange="toggleCustomRecipe()">
+      ${recs.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+      <option value="__custom">✏️ Custom recipe (customer's own)</option>
+    </select>`;
+  toggleCustomRecipe();
+}
+function toggleCustomRecipe(){
+  const v=document.getElementById('q_recipe').value;
+  const cw=document.getElementById('q_customwrap');
+  if(v==='__custom'){
+    cw.style.display='block';
+    const pid=document.getElementById('q_prod').value;
+    const base=state.recipes.find(r=>r.productId===pid && !r.custom);
+    document.getElementById('q_customlines').innerHTML=base.lines.map((l,i)=>{
+      const raw=rawById(l.raw);
+      return `<div class="recipe-line">
+        <span style="flex:1.4" class="sm">${raw.name}</span>
+        <input id="cl_${i}" type="number" step="0.001" value="${l.qty}" data-raw="${l.raw}" style="flex:.8">
+        <span class="muted xs" style="width:60px">${raw.unit}/jar</span></div>`;
+    }).join('');
+  } else cw.style.display='none';
+}
+function saveQuote(){
+  const cust=document.getElementById('q_cust').value;
+  const pid=document.getElementById('q_prod').value;
+  const qty=+document.getElementById('q_qty').value||0;
+  const price=+document.getElementById('q_price').value||0;
+  let recipeId=document.getElementById('q_recipe').value;
+  let custom=false;
+  if(qty<1){toast('Enter a valid quantity.');return;}
+  if(recipeId==='__custom'){
+    custom=true;
+    const base=state.recipes.find(r=>r.productId===pid && !r.custom);
+    const lines=[...document.querySelectorAll('#q_customlines input')].map(inp=>(
+      {raw:inp.dataset.raw, qty:+inp.value||0}));
+    recipeId=uid('RC');
+    state.recipes.push({id:recipeId, productId:pid, name:prodById(pid).name+' — custom ('+custById(cust).name+')',
+      custom:true, yield:1, lines});
+  }
+  const q={id:uid('Q'), customerId:cust, date:todayISO(), status:'Draft',
+    items:[{productId:pid, recipeId, qty, price}],
+    note:document.getElementById('q_note').value, custom};
+  state.quotes.push(q);
+  closeModal();
+  openQuote(q.id);
+}
+
+function openQuote(qid){
+  const q=state.quotes.find(x=>x.id===qid);
+  const c=custById(q.customerId);
+  const total=q.items.reduce((a,i)=>a+i.qty*i.price,0);
+  let body=`<div class="quote-doc">
+    <div class="qh">
+      <div><b style="font-size:15px">Muglan Udyog</b><br>
+        <span class="xs muted">Quotation ${q.id} · ${q.date}</span></div>
+      <div class="right xs muted">To:<br><b style="color:var(--ink)">${c.name}</b><br>${c.phone}</div>
+    </div>
+    <table><tr><th>Product</th><th>Recipe</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>`;
+  q.items.forEach(i=>{
+    body+=`<tr><td><b>${prodById(i.productId).name}</b></td>
+      <td class="xs">${recById(i.recipeId).custom?'<span class="badge b-purple">custom</span>':'House recipe'}</td>
+      <td class="mono">${i.qty}</td><td class="mono">${fmtMoney(i.price)}</td>
+      <td class="mono">${fmtMoney(i.qty*i.price)}</td></tr>`;
+  });
+  body+=`</table>
+    <div class="row" style="justify-content:flex-end; margin-top:10px">
+      <div style="font-size:16px"><b>Total: ${fmtMoney(total)}</b></div></div>
+    ${q.note?`<div class="xs muted" style="margin-top:8px">Note: ${q.note}</div>`:''}
+  </div>`;
+
+  if(q.status==='Sent'){
+    body+=`<div class="note blue"><span>📨</span><div>Quotation sent to ${c.name} on ${c.channel}. Waiting for them to confirm.</div></div>`;
+  }
+  if(q.status==='Accepted'){
+    body+=`<div class="note green"><span>✅</span><div>Customer accepted — an order was created from this quotation.</div></div>`;
+  }
+
+  let foot='';
+  if(q.status==='Draft'){
+    foot=`<button class="btn ghost" onclick="closeModal()">Close</button>
+      <button class="btn blue" onclick="sendQuote('${q.id}')">📨 Mark as sent</button>`;
+  } else if(q.status==='Sent'){
+    foot=`<button class="btn ghost" onclick="closeModal()">Close</button>
+      <button class="btn green" onclick="acceptQuote('${q.id}')">✅ Customer agreed → create order</button>`;
+  } else {
+    foot=`<button class="btn ghost" onclick="closeModal()">Close</button>`;
+  }
+  modal('Quotation '+q.id, body, foot);
+}
+function sendQuote(qid){
+  const q=state.quotes.find(x=>x.id===qid);
+  q.status='Sent';
+  toast('Quotation marked as sent to '+custById(q.customerId).name);
+  openQuote(qid); render();
+}
+
+/* Customer agrees → quotation becomes an order. THIS is the key flow. */
+function acceptQuote(qid){
+  const q=state.quotes.find(x=>x.id===qid);
+  q.status='Accepted';
+  const it=q.items[0];
+  const rec=recById(it.recipeId);
+  const total=it.qty*it.price;
+
+  /* Step 1: if house recipe & enough finished stock → fulfil from stock */
+  let fromStock=false, status, mfgStage='Not started', shortfall=null;
+  const houseStock = !rec.custom ? stockOf(it.productId) : 0;
+
+  if(!rec.custom && houseStock>=it.qty){
+    fromStock=true;
+    status='Ready to deliver';
+  } else {
+    /* Step 2: check the recipe against raw material */
+    const chk=checkRecipe(it.recipeId, it.qty);
+    if(chk.ok){
+      status='Ready for manufacturing';
+    } else {
+      status='Awaiting raw material';
+      shortfall=chk.lines.filter(l=>!l.ok).map(l=>({raw:l.raw.id,need:l.need,have:l.have,short:l.short}));
+    }
+  }
+
+  const order={
+    id:uid('O'), customerId:q.customerId, productId:it.productId, recipeId:it.recipeId,
+    qty:it.qty, unitPrice:it.price, status, mfgStage,
+    created:todayISO(), due:addDays(todayISO(),7), fromStock, shortfall,
+    source:custById(q.customerId).channel, fromQuote:q.id,
+    payment:{plan:'full', total, paid:0,
+      schedule:[{label:'Full payment',amount:total,due:addDays(todayISO(),7),paid:false}]},
+    log:[{t:todayISO(),u:state.user,m:'Order created from quotation '+q.id+'.'}]
+  };
+  /* system log lines describing what it decided */
+  if(fromStock){
+    logEvent(order,'House recipe and '+houseStock+' jars in finished stock — fulfilling from stock.');
+    logEvent(order,'Status → Ready to deliver.');
+  } else if(status==='Ready for manufacturing'){
+    logEvent(order,'Recipe checked — all raw materials available.');
+    logEvent(order,'Status → Ready for manufacturing.');
+  } else {
+    const names=shortfall.map(s=>rawById(s.raw).name+' (short '+s.short+rawById(s.raw).unit+')').join(', ');
+    logEvent(order,'Recipe checked — missing: '+names+'.');
+    logEvent(order,'Status → Awaiting raw material.');
+    /* auto-create purchase orders for the shortfall */
+    shortfall.forEach(s=>{
+      const r=rawById(s.raw);
+      const buyQty=Math.ceil(s.short+ r.reorder);
+      state.purchases.push({id:uid('PO'), raw:s.raw, qty:buyQty, status:'Ordered',
+        forOrder:order.id, created:todayISO(), supplier:'(assign supplier)'});
+    });
+  }
+  state.orders.push(order);
+  closeModal();
+  toast('Order '+order.id+' created.');
+  openOrder(order.id);
+}
+
+/* =====================================================================
+   ORDER DETAIL — the full lifecycle view
+   ===================================================================== */
+function openOrder(oid){
+  const o=orderById(oid);
+  const c=custById(o.customerId), p=prodById(o.productId), rec=recById(o.recipeId);
+  const flowIdx=ORDER_FLOW.indexOf(o.status);
+
+  /* recipe check display */
+  const chk=checkRecipe(o.recipeId,o.qty);
+
+  let body=`
+    <div class="row" style="justify-content:space-between; align-items:flex-start">
+      <div>
+        <div style="font-size:16px"><b>${p.name}</b> × ${o.qty} jars</div>
+        <div class="sm muted">${c.name} · ${c.phone} · via ${o.source}</div>
+      </div>
+      ${statusBadge(o.status)}
+    </div>
+
+    <div class="flow" style="margin-top:10px">${ORDER_FLOW.filter(s=>s!=='Quotation').map(s=>{
+      const i=ORDER_FLOW.indexOf(s);
+      return `<div class="step ${i<flowIdx?'done':i===flowIdx?'now':''}">${s}</div>`;
+    }).join('')}</div>`;
+
+  /* recipe + raw material check */
+  body+=`<div class="card" style="margin-top:10px"><h3>📖 Recipe check
+    ${rec.custom?'<span class="badge b-purple">custom recipe</span>':'<span class="badge b-green">house recipe</span>'}</h3>
+    <div class="xs muted" style="margin-bottom:6px">${rec.name} — needs the following for ${o.qty} jars:</div>
+    <table><tr><th>Raw material</th><th>Needed</th><th>In stock</th><th></th></tr>`;
+  chk.lines.forEach(l=>{
+    body+=`<tr><td class="sm">${l.raw.name}</td>
+      <td class="mono">${l.need} ${l.raw.unit}</td>
+      <td class="mono ${l.ok?'':'lowstock'}">${l.have} ${l.raw.unit}</td>
+      <td>${l.ok?'<span class="badge b-green">OK</span>':
+        `<span class="badge b-red">short ${l.short} ${l.raw.unit}</span>`}</td></tr>`;
+  });
+  body+=`</table></div>`;
+
+  /* contextual action / status panel */
+  if(o.status==='Awaiting raw material'){
+    const pos=state.purchases.filter(po=>po.forOrder===o.id);
+    body+=`<div class="note red"><span>🔴</span><div>This order can't be manufactured yet — raw materials are short.
+      ${pos.length?'Purchase order(s) '+pos.map(p=>p.id).join(', ')+' were created automatically.':''}
+      Once received, the order moves to <b>Ready for manufacturing</b>.</div></div>`;
+  }
+  if(o.status==='Ready to deliver' && o.fromStock){
+    body+=`<div class="note green"><span>📦</span><div>This product is already in finished stock — no manufacturing needed.
+      Deliver straight from stock.</div></div>`;
+  }
+  if(o.status==='Manufacturing'){
+    body+=`<div class="note"><span>🏭</span><div>Currently in manufacturing — stage: <b>${o.mfgStage}</b>.
+      Use the Manufacturing board to advance stages.</div></div>`;
+  }
+  if(o.status==='Blocked'){
+    body+=`<div class="note red"><span>⏸</span><div>Manufacturing is blocked: ${o.blockReason||'(no reason given)'}.</div></div>`;
+  }
+
+  /* payment summary */
+  if(o.payment){
+    const bal=o.payment.total-o.payment.paid;
+    body+=`<div class="card"><h3>💰 Payment</h3>
+      <div class="kv"><span class="k">Plan</span><span>${o.payment.plan==='installments'?'Installments':'Full payment'}</span></div>
+      <div class="kv"><span class="k">Total</span><span class="mono">${fmtMoney(o.payment.total)}</span></div>
+      <div class="kv"><span class="k">Paid</span><span class="mono" style="color:var(--green)">${fmtMoney(o.payment.paid)}</span></div>
+      <div class="kv"><span class="k">Balance</span><span class="mono" style="color:${bal>0?'var(--red)':'inherit'}">${fmtMoney(bal)}</span></div>
+    </div>`;
+  }
+
+  /* expiry note for delivered/stock */
+  body+=`<div class="card"><h3>🕓 History</h3><div class="timeline">${
+    o.log.map(e=>`<div class="ev"><div class="dot"></div>
+      <div><b>${e.m}</b><br><span class="t">${e.t} · ${e.u}</span></div></div>`).join('')
+  }</div></div>`;
+
+  /* ---- footer actions depend on status ---- */
+  let foot=`<button class="btn ghost" onclick="closeModal()">Close</button>`;
+  if(o.status==='Awaiting raw material'){
+    foot+=`<button class="btn" onclick="go('raw');closeModal()">View purchase orders</button>`;
+  } else if(o.status==='Ready for manufacturing'){
+    foot+=`<button class="btn green" onclick="advanceMfg('${o.id}')">▶ Start manufacturing</button>`;
+  } else if(o.status==='Manufacturing'){
+    foot+=`<button class="btn" onclick="go('mfg');closeModal()">Open manufacturing board</button>`;
+  } else if(o.status==='Ready to deliver'){
+    foot+=`<button class="btn green" onclick="deliverOrder('${o.id}')">🚚 Mark out for delivery</button>`;
+  } else if(o.status==='Delivered'){
+    foot+=`<button class="btn red ghost" onclick="returnOrder('${o.id}')">↩ Process return</button>
+           <button class="btn green" onclick="completeOrder('${o.id}')">✓ Mark completed</button>`;
+  }
+  modal('Order '+o.id, body, foot);
+}
+
+/* =====================================================================
+   ACTIONS — order lifecycle transitions
+   ===================================================================== */
+function consumeRawForOrder(o){
+  /* deduct the recipe's raw materials from inventory */
+  const rec=recById(o.recipeId);
+  rec.lines.forEach(l=>{
+    const r=rawById(l.raw);
+    r.qty=+(r.qty-l.qty*o.qty).toFixed(3);
+    if(r.qty<0)r.qty=0;
+  });
+}
+
+function advanceMfg(oid){
+  const o=orderById(oid);
+  if(o.status==='Ready for manufacturing'){
+    /* starting manufacturing consumes raw materials */
+    consumeRawForOrder(o);
+    o.status='Manufacturing';
+    o.mfgStage=MFG_STAGES[1];
+    logEvent(o,'Manufacturing started — raw materials deducted from inventory.');
+    logEvent(o,'Stage → '+o.mfgStage+'.');
+    toast('Manufacturing started for '+o.id);
+  } else {
+    const i=MFG_STAGES.indexOf(o.mfgStage);
+    o.mfgStage=MFG_STAGES[Math.min(i+1,MFG_STAGES.length-1)];
+    logEvent(o,'Stage → '+o.mfgStage+'.');
+    toast('Stage updated: '+o.mfgStage);
+  }
+  refreshAfter(oid);
+}
+function blockMfg(oid){
+  const o=orderById(oid);
+  const reason=prompt('Why is this order blocked? (e.g. machine down, staff absent)','Machine maintenance');
+  if(reason===null) return;
+  o.status='Blocked'; o.blockReason=reason;
+  logEvent(o,'Manufacturing blocked: '+reason);
+  toast('Order marked blocked');
+  refreshAfter(oid);
+}
+function finishMfg(oid){
+  const o=orderById(oid);
+  o.status='Ready to deliver';
+  o.mfgStage='Finished';
+  /* finished product gets a batch + expiry */
+  o.batch='B-'+Math.floor(Math.random()*9000+1000);
+  o.expiry=addDays(todayISO(), prodById(o.productId).shelfLifeDays);
+  logEvent(o,'Manufacturing finished. Batch '+o.batch+', expiry '+o.expiry+'.');
+  logEvent(o,'Status → Ready to deliver.');
+  toast('Order finished — ready to deliver');
+  refreshAfter(oid);
+}
+function deliverOrder(oid){
+  const o=orderById(oid);
+  /* if fulfilled from stock, decrement finished stock now */
+  if(o.fromStock){
+    let remaining=o.qty;
+    for(const s of state.stock.filter(s=>s.productId===o.productId && !recById(s.recipeId).custom)){
+      const take=Math.min(s.qty,remaining);
+      s.qty-=take; remaining-=take;
+      if(remaining<=0)break;
+    }
+    state.stock=state.stock.filter(s=>s.qty>0);
+    logEvent(o,o.qty+' jars deducted from finished stock.');
+  }
+  o.status='Delivered';
+  o.deliveredOn=todayISO();
+  logEvent(o,'Order marked out for delivery.');
+  toast('Order '+o.id+' is out for delivery');
+  refreshAfter(oid);
+}
+function completeOrder(oid){
+  const o=orderById(oid);
+  if(o.payment && o.payment.paid<o.payment.total){
+    if(!confirm('There is still a balance of '+fmtMoney(o.payment.total-o.payment.paid)+
+      '. Mark order completed anyway?')) return;
+  }
+  o.status='Completed';
+  logEvent(o,'Order completed.');
+  toast('Order completed ✅');
+  refreshAfter(oid);
+}
+function returnOrder(oid){
+  const o=orderById(oid);
+  const reason=prompt('Reason for return?','Customer not satisfied with taste');
+  if(reason===null)return;
+  o.status='Returned'; o.returnReason=reason;
+  /* refund */
+  const refund=o.payment?o.payment.paid:0;
+  if(o.payment){o.payment.paid=0; o.payment.refunded=refund;}
+  /* product goes back into finished stock (house recipe only) */
+  if(!recById(o.recipeId).custom){
+    state.stock.push({id:uid('S'), productId:o.productId, recipeId:o.recipeId,
+      qty:o.qty, mfgDate:o.deliveredOn||todayISO(),
+      expiry:o.expiry||addDays(todayISO(),prodById(o.productId).shelfLifeDays),
+      batch:o.batch||'B-RET'});
+    logEvent(o,o.qty+' jars returned to finished stock.');
+  } else {
+    logEvent(o,'Custom-recipe jars returned — not added back to general stock.');
+  }
+  logEvent(o,'Return processed: '+reason+'. Refund of '+fmtMoney(refund)+' issued.');
+  toast('Return processed, '+fmtMoney(refund)+' refunded');
+  refreshAfter(oid);
+}
+function refreshAfter(oid){
+  render();
+  if(document.getElementById('scrim')) openOrder(oid);
+}
+
+/* =====================================================================
+   RAW MATERIAL / PURCHASE actions
+   ===================================================================== */
+function openReceiveRaw(rid){
+  const r=rawById(rid);
+  modal('Receive stock — '+r.name,
+    `<div class="fldwrap"><label class="fld">Quantity received (${r.unit})</label>
+      <input id="rcv_qty" type="number" min="0" step="0.001" value="5"></div>
+     <div class="xs muted">Current stock: ${r.qty} ${r.unit}</div>`,
+    `<button class="btn ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn green" onclick="receiveRaw('${rid}')">Add to inventory</button>`);
+}
+function receiveRaw(rid){
+  const r=rawById(rid);
+  const add=+document.getElementById('rcv_qty').value||0;
+  r.qty=+(r.qty+add).toFixed(3);
+  closeModal();
+  toast(add+' '+r.unit+' of '+r.name+' added');
+  render();
+}
+function receivePO(poid){
+  const po=state.purchases.find(p=>p.id===poid);
+  po.status='Received';
+  const r=rawById(po.raw);
+  r.qty=+(r.qty+po.qty).toFixed(3);
+  /* re-check any order waiting on this material */
+  if(po.forOrder){
+    const o=orderById(po.forOrder);
+    if(o && o.status==='Awaiting raw material'){
+      const chk=checkRecipe(o.recipeId,o.qty);
+      if(chk.ok){
+        o.status='Ready for manufacturing';
+        o.shortfall=null;
+        logEvent(o,'Raw material received ('+po.id+'). Recipe re-checked — all good.');
+        logEvent(o,'Status → Ready for manufacturing.');
+        toast(o.id+' is now ready for manufacturing ✅');
+      } else {
+        logEvent(o,'Raw material received ('+po.id+') — still waiting on other items.');
+        toast('Stock received. '+o.id+' still needs more material.');
+      }
+    }
+  } else {
+    toast(po.qty+' '+r.unit+' of '+r.name+' received');
+  }
+  render();
+}
+
+/* =====================================================================
+   PAYMENT actions
+   ===================================================================== */
+function markPaid(oid,idx){
+  const o=orderById(oid);
+  const inst=o.payment.schedule[idx];
+  inst.paid=true;
+  o.payment.paid+=inst.amount;
+  logEvent(o,'Payment received: '+inst.label+' — '+fmtMoney(inst.amount)+'.');
+  toast('Payment recorded: '+fmtMoney(inst.amount));
+  render();
+}
+function remind(oid,name){
+  toast('Reminder drafted for '+name+' (would send via WhatsApp in real system)');
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+render();
+</script>
+</body>
+</html>
